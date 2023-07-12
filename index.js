@@ -85,7 +85,7 @@ fastify.post('/link', async function handler(request, reply) {
     reply.send({ data: full.reverse() })
 })
 // Run the server!
-fastify.listen({ port: 3000 }, (err) => {
+fastify.listen({ port: 3333 }, (err) => {
     if (err) {
         fastify.log.error(err)
         process.exit(1)
