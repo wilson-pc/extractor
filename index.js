@@ -1,6 +1,6 @@
 // Require the framework and instantiate it
 const fastify = require('fastify')({ logger: true })
-const puppeteer = require('puppeteer');
+const { launch } = require('puppeteer');
 const cheerio = require('cheerio');
 const path = require("path")
 
@@ -81,7 +81,7 @@ fastify.post('/link', async function handler(request, reply) {
 
                 full.push({ ...iterator, videos: videos })
 
-                await timeout(800);
+                await timeout(500);
             } catch (error) {
                 console.log(error)
             }
@@ -133,14 +133,70 @@ fastify.post('/link', async function handler(request, reply) {
 
                 full.push({ ...iterator, videos: videos })
 
-                await timeout(800);
+                await timeout(400);
             } catch (error) {
                 console.log(error)
             }
 
         }
+    } else if (request.body.link.includes("mundodonghua")) {
+        const { data } = await axios.get(request.body.link)
+        const $ = cheerio.load(data)
+
+        const html = $(".donghua-list a")
+
+        const capitulos = []
+
+        html.each((i, elem) => {
+            const $$ = cheerio.load(elem)
+            capitulos.push({ url: "https://www.mundodonghua.com" + elem.attribs.href, title: $$('blockquote').first().text() })
+        });
+        const browser = await launch({
+            headless: false
+        });
+        for (const iterator of capitulos.reverse()) {
+            try {
+
+                const page = await browser.newPage();
+                await page.setDefaultNavigationTimeout(0);
+                await page.goto(iterator.url, {
+                    waitUntil: "load",
+                });
+                const body = await page.content();
+
+                const $$ = cheerio.load(body);
+                const html2 = $$("ul[class='nav nav-tabs'] li")
+
+                const videos = []
+
+                const firstUrl = $$("#tamamo_player").first().attr().src
+                console.log(firstUrl)
+
+                await page.goto(firstUrl, {
+                    waitUntil: "domcontentloaded",
+                });
+                const body2 = await page.content();
+
+                const $$2 = cheerio.load(body2);
+                const firstUrl2 = $$2("#player").first().attr().src
+                console.log(firstUrl2)
+
+                videos[0] = { link: firstUrl2, label: "tamamo_player" }
+                html2.each((i, elem) => {
+                    console.log(elem.attribs)
+                    videos.push({ link: iterator.url, label: elem.attribs.id })
+                });
+                full.push({ ...iterator, videos: videos })
+                await page.close()
+
+            } catch (error) {
+                console.log(error)
+            }
+
+        }
+        await browser.close();
     }
-    reply.send({ data: full.reverse() })
+    reply.send({ data: full })
 })
 // Run the server!
 fastify.listen({ port: 3333, host: "0.0.0.0" }, (err) => {
