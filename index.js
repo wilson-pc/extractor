@@ -152,7 +152,7 @@ fastify.post('/link', async function handler(request, reply) {
             capitulos.push({ url: "https://www.mundodonghua.com" + elem.attribs.href, title: $$('blockquote').first().text() })
         });
         const browser = await launch({
-            headless: false
+
         });
         for (const iterator of capitulos.reverse()) {
             try {
