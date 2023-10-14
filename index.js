@@ -19,6 +19,156 @@ fastify.register(require('@fastify/static'), {
 fastify.get('/', function handler(request, reply) {
     return reply.sendFile('index.html')
 })
+
+fastify.post('/chapter', async function handler(request, reply) {
+    console.log(request.body)
+    /*
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+
+    await page.goto(request.body.link);
+
+    const body = await page.content()
+    const $ = cheerio.load(body)
+    console.log(body)
+    await browser.close();*/
+
+    let full = {}
+
+    if (request.body.link.includes("animexin")) {
+
+
+
+
+        try {
+            const rp = await axios.get(request.body.link)
+            const $$ = cheerio.load(rp.data)
+            const html2 = $$(".mobius option")
+            const videos = []
+            html2.each((i, elem) => {
+
+                if (elem.attribs.value) {
+                    let buff = new Buffer(elem.attribs.value, 'base64');
+                    let text = buff.toString('ascii');
+
+                    const $$$ = cheerio.load(text)
+
+                    try {
+                        const uri = $$$("iframe").first().attr().src
+
+
+                        if (uri.startsWith("//")) {
+                            videos.push({ link: "https:" + uri, label: elem.children[0].data })
+                        } else {
+                            videos.push({ link: uri, label: elem.children[0].data })
+                        }
+
+                    } catch (error) {
+                        console.log(error)
+                    }
+                } else {
+
+                }
+
+            });
+
+            full = { videos: videos }
+
+            await timeout(500);
+        } catch (error) {
+            console.log(error)
+        }
+
+
+    } else if (request.body.link.includes("donghualife")) {
+
+
+        try {
+            const rp = await axios.get(request.body.link)
+            const $$ = cheerio.load(rp.data)
+            const html2 = $$(".ListOptions li")
+            const videos = []
+            const meta = []
+            html2.each((i, elem) => {
+
+                if (elem.attribs['data-id']) {
+
+                    const rp = elem.children.find((el) => el.name === "p").children[0].data
+
+
+                    meta.push({ key: elem.attribs['data-key'], id: elem.attribs['data-id'], name: rp })
+
+
+                }
+
+            });
+            for (const met of meta) {
+                const rp1 = await axios.get(`https://donghualife.com/?trembed=${met.key}&trid=${met.id}&trtype=2`)
+
+
+                const $$$ = cheerio.load(rp1.data)
+
+                const uri = $$$("iframe").first().attr().src
+
+                videos.push({ link: uri, label: met.name })
+            }
+
+            full = { videos: videos }
+
+            await timeout(400);
+        } catch (error) {
+            console.log(error)
+        }
+
+
+    } else if (request.body.link.includes("mundodonghua")) {
+
+        try {
+            const browser = await launch({
+
+            });
+            const page = await browser.newPage();
+            await page.setDefaultNavigationTimeout(0);
+            await page.goto(request.body.link, {
+                waitUntil: "load",
+            });
+            const body = await page.content();
+
+            const $$ = cheerio.load(body);
+            const html2 = $$("ul[class='nav nav-tabs'] li")
+
+            const videos = []
+
+            const firstUrl = $$("#tamamo_player").first().attr().src
+            console.log(firstUrl)
+
+            await page.goto(firstUrl, {
+                waitUntil: "domcontentloaded",
+            });
+            const body2 = await page.content();
+
+            const $$2 = cheerio.load(body2);
+            const firstUrl2 = $$2("#player").first().attr().src
+            console.log(firstUrl2)
+
+            videos[0] = { link: firstUrl2, label: "tamamo_player" }
+            html2.each((i, elem) => {
+                console.log(elem.attribs)
+                videos.push({ link: request.body.link, label: elem.attribs.id })
+            });
+            full = { videos: videos }
+            await page.close()
+
+
+
+
+            await browser.close();
+        } catch (error) {
+            console.log(error)
+        }
+    }
+    reply.send({ data: full })
+})
 fastify.post('/link', async function handler(request, reply) {
     console.log(request.body)
     /*

@@ -7,7 +7,8 @@
 
     <input type="text" id="fname" name="fname" /><br /><br />
 
-    <button onclick="download()">Obtener</button>
+    <button onclick="download()">Todo</button>
+    <button onclick="downloadChapter()">Capitulo</button>
     <div id="loading"></div>
     <div id="capis"></div>
 
@@ -30,12 +31,40 @@
             let html = "";
             data.forEach((element) => {
               html += ` <div>
-        <h3>${element.title}</h3>
-       ${element.videos.map((vd) => {
-         return ` <a href="${vd.link}"> ${vd.label}</a>`;
-       })}
-      </div>`;
+              <h3>${element.title}</h3>
+             ${element.videos.map((vd) => {
+               return ` <a href="${vd.link}"> ${vd.label}</a>`;
+             })}
+            </div>`;
             });
+            ld.innerText = "";
+            capis.innerHTML = html;
+          })
+          .catch((err) => {
+            console.log(err);
+            ld.innerText = "erorroroorroor";
+          });
+      }
+
+      function downloadChapter() {
+        const name = document.getElementById("fname").value;
+        console.log(name);
+        const ld = document.getElementById("loading");
+        ld.innerText = "Cargando";
+        fetch("/chapter", {
+          method: "POST",
+          body: JSON.stringify({ link: name }),
+          headers: { "Content-type": "application/json; charset=UTF-8" },
+        })
+          .then((response) => response.json())
+          .then(({ data }) => {
+            const capis = document.getElementById("capis");
+            let html = `<div>
+
+                 ${data.videos.map((vd) => {
+                   return ` <a href="${vd.link}"> ${vd.label}</a>`;
+                 })};
+                      </div>`;
             ld.innerText = "";
             capis.innerHTML = html;
           })
