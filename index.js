@@ -34,6 +34,7 @@ fastify.post('/chapter', async function handler(request, reply) {
     await browser.close();*/
 
     let full = {}
+    let title = ""
 
     if (request.body.link.includes("animexin")) {
 
@@ -42,7 +43,13 @@ fastify.post('/chapter', async function handler(request, reply) {
 
         try {
             const rp = await axios.get(request.body.link)
+
             const $$ = cheerio.load(rp.data)
+            title = $$("title")
+                .first()
+                .text()
+                .replace(/\\n/g, "")
+                .trim()
             const html2 = $$(".mobius option")
             const videos = []
             html2.each((i, elem) => {
@@ -86,6 +93,11 @@ fastify.post('/chapter', async function handler(request, reply) {
         try {
             const rp = await axios.get(request.body.link)
             const $$ = cheerio.load(rp.data)
+            title = $$("title")
+                .first()
+                .text()
+                .replace(/\\n/g, "")
+                .trim()
             const html2 = $$(".ListOptions li")
             const videos = []
             const meta = []
@@ -137,6 +149,12 @@ fastify.post('/chapter', async function handler(request, reply) {
             const $$ = cheerio.load(body);
             const html2 = $$("ul[class='nav nav-tabs'] li")
 
+            title = $$("title")
+                .first()
+                .text()
+                .replace(/\\n/g, "")
+                .trim()
+
             const videos = []
 
             const firstUrl = $$("#tamamo_player").first().attr().src
@@ -167,7 +185,7 @@ fastify.post('/chapter', async function handler(request, reply) {
             console.log(error)
         }
     }
-    reply.send({ data: full })
+    reply.send({ data: full, title })
 })
 fastify.post('/link', async function handler(request, reply) {
     console.log(request.body)
@@ -183,12 +201,18 @@ fastify.post('/link', async function handler(request, reply) {
     await browser.close();*/
 
     const full = []
-
+    let title = ""
     if (request.body.link.includes("animexin")) {
         const { data } = await axios.get(request.body.link)
         const $ = cheerio.load(data)
 
         const html = $(".eplister a")
+
+        title = $("title")
+            .first()
+            .text()
+            .replace(/\\n/g, "")
+            .trim()
 
         const capitulos = []
 
@@ -240,7 +264,11 @@ fastify.post('/link', async function handler(request, reply) {
     } else if (request.body.link.includes("donghualife")) {
         const { data } = await axios.get(request.body.link)
         const $ = cheerio.load(data)
-
+        title = $("title")
+            .first()
+            .text()
+            .replace(/\\n/g, "")
+            .trim()
         const html = $(".Viewed .MvTbTtl a")
 
         const capitulos = []
@@ -292,7 +320,11 @@ fastify.post('/link', async function handler(request, reply) {
     } else if (request.body.link.includes("mundodonghua")) {
         const { data } = await axios.get(request.body.link)
         const $ = cheerio.load(data)
-
+        title = $("title")
+            .first()
+            .text()
+            .replace(/\\n/g, "")
+            .trim()
         const html = $(".donghua-list a")
 
         const capitulos = []
@@ -346,7 +378,7 @@ fastify.post('/link', async function handler(request, reply) {
         }
         await browser.close();
     }
-    reply.send({ data: full })
+    reply.send({ data: full, title })
 })
 // Run the server!
 fastify.listen({ port: 3333, host: "0.0.0.0" }, (err) => {
