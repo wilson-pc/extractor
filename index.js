@@ -331,7 +331,16 @@ fastify.post('/link', async function handler(request, reply) {
 
         html.each((i, elem) => {
             const $$ = cheerio.load(elem)
-            capitulos.push({ url: "https://www.mundodonghua.com" + elem.attribs.href, title: $$('blockquote').first().text() })
+            if (elem.attribs?.href?.includes("mundodonghua.com")) {
+                capitulos.push({
+                    url:
+                        elem.attribs.href, title: $$('blockquote').first().text()
+                })
+            } else {
+
+
+                capitulos.push({ url: "https://www.mundodonghua.com" + elem.attribs.href, title: $$('blockquote').first().text() })
+            }
         });
         const browser = await launch({
 
