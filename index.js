@@ -199,6 +199,7 @@ fastify.post('/link', async function handler(request, reply) {
     const $ = cheerio.load(body)
     console.log(body)
     await browser.close();*/
+    const salt = request.body.salt ?? 0
 
     const full = []
     let title = ""
@@ -220,7 +221,7 @@ fastify.post('/link', async function handler(request, reply) {
             const elem2 = elem.children[0]
             capitulos.push({ url: elem.attribs.href, title: elem2.children[0].data })
         });
-        for (const iterator of capitulos) {
+        for (const iterator of capitulos.slice(salt)) {
             try {
                 const rp = await axios.get(iterator.url)
                 const $$ = cheerio.load(rp.data)
@@ -278,7 +279,7 @@ fastify.post('/link', async function handler(request, reply) {
             capitulos.push({ url: elem.attribs.href, title: elem.children[0].data })
         });
 
-        for (const iterator of capitulos) {
+        for (const iterator of capitulos.slice(salt)) {
             try {
                 const rp = await axios.get(iterator.url)
                 const $$ = cheerio.load(rp.data)
@@ -345,7 +346,7 @@ fastify.post('/link', async function handler(request, reply) {
         const browser = await launch({
 
         });
-        for (const iterator of capitulos.reverse()) {
+        for (const iterator of capitulos.reverse().slice(salt)) {
             try {
 
                 const page = await browser.newPage();
