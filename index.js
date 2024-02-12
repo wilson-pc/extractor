@@ -3,7 +3,10 @@ const fastify = require('fastify')({ logger: true })
 const { launch } = require('puppeteer');
 const cheerio = require('cheerio');
 const path = require("path")
+const { PrismaClient } = require("@prisma/client")
 
+
+const prisma = new PrismaClient()
 const axios = require("axios")
 
 function timeout(ms) {
@@ -42,46 +45,60 @@ fastify.post('/chapter', async function handler(request, reply) {
 
 
         try {
-            const rp = await axios.get(request.body.link)
+            const before = await prisma.chapter.findFirst({ where: { link: request.body.link } })
 
-            const $$ = cheerio.load(rp.data)
-            title = $$("title")
-                .first()
-                .text()
-                .replace(/\\n/g, "")
-                .trim()
-            const html2 = $$(".mobius option")
-            const videos = []
-            html2.each((i, elem) => {
+            if (before) {
+                full = { videos: before.videos }
+                title = before.title
+            } else {
+                const rp = await axios.get(request.body.link)
 
-                if (elem.attribs.value) {
-                    let buff = new Buffer(elem.attribs.value, 'base64');
-                    let text = buff.toString('ascii');
+                const $$ = cheerio.load(rp.data)
+                title = $$("title")
+                    .first()
+                    .text()
+                    .replace(/\\n/g, "")
+                    .trim()
+                const html2 = $$(".mobius option")
+                const videos = []
+                html2.each((i, elem) => {
 
-                    const $$$ = cheerio.load(text)
+                    if (elem.attribs.value) {
+                        let buff = new Buffer(elem.attribs.value, 'base64');
+                        let text = buff.toString('ascii');
 
-                    try {
-                        const uri = $$$("iframe").first().attr().src
+                        const $$$ = cheerio.load(text)
+
+                        try {
+                            const uri = $$$("iframe").first().attr().src
 
 
-                        if (uri.startsWith("//")) {
-                            videos.push({ link: "https:" + uri, label: elem.children[0].data })
-                        } else {
-                            videos.push({ link: uri, label: elem.children[0].data })
+                            if (uri.startsWith("//")) {
+                                videos.push({ link: "https:" + uri, label: elem.children[0].data })
+                            } else {
+                                videos.push({ link: uri, label: elem.children[0].data })
+                            }
+
+                        } catch (error) {
+                            console.log(error)
                         }
+                    } else {
 
-                    } catch (error) {
-                        console.log(error)
                     }
-                } else {
 
-                }
+                });
 
-            });
-
-            full = { videos: videos }
-
-            await timeout(500);
+                full = { videos: videos }
+                await prisma.chapter.create({
+                    data: {
+                        title: title,
+                        videos: videos,
+                        link: request.body.link,
+                        site: 'animexin.vip'
+                    }
+                })
+                await timeout(500);
+            }
         } catch (error) {
             console.log(error)
         }
@@ -91,43 +108,57 @@ fastify.post('/chapter', async function handler(request, reply) {
 
 
         try {
-            const rp = await axios.get(request.body.link)
-            const $$ = cheerio.load(rp.data)
-            title = $$("title")
-                .first()
-                .text()
-                .replace(/\\n/g, "")
-                .trim()
-            const html2 = $$(".ListOptions li")
-            const videos = []
-            const meta = []
-            html2.each((i, elem) => {
+            const before = await prisma.chapter.findFirst({ where: { link: request.body.link } })
 
-                if (elem.attribs['data-id']) {
+            if (before) {
+                full = { videos: before.videos }
+                title = before.title
+            } else {
+                const rp = await axios.get(request.body.link)
+                const $$ = cheerio.load(rp.data)
+                title = $$("title")
+                    .first()
+                    .text()
+                    .replace(/\\n/g, "")
+                    .trim()
+                const html2 = $$(".ListOptions li")
+                const videos = []
+                const meta = []
+                html2.each((i, elem) => {
 
-                    const rp = elem.children.find((el) => el.name === "p").children[0].data
+                    if (elem.attribs['data-id']) {
+
+                        const rp = elem.children.find((el) => el.name === "p").children[0].data
 
 
-                    meta.push({ key: elem.attribs['data-key'], id: elem.attribs['data-id'], name: rp })
+                        meta.push({ key: elem.attribs['data-key'], id: elem.attribs['data-id'], name: rp })
 
 
+                    }
+
+                });
+                for (const met of meta) {
+                    const rp1 = await axios.get(`https://donghualife.com/?trembed=${met.key}&trid=${met.id}&trtype=2`)
+
+
+                    const $$$ = cheerio.load(rp1.data)
+
+                    const uri = $$$("iframe").first().attr().src
+
+                    videos.push({ link: uri, label: met.name })
                 }
 
-            });
-            for (const met of meta) {
-                const rp1 = await axios.get(`https://donghualife.com/?trembed=${met.key}&trid=${met.id}&trtype=2`)
-
-
-                const $$$ = cheerio.load(rp1.data)
-
-                const uri = $$$("iframe").first().attr().src
-
-                videos.push({ link: uri, label: met.name })
+                full = { videos: videos }
+                await prisma.chapter.create({
+                    data: {
+                        title: title,
+                        videos: videos,
+                        link: request.body.link,
+                        site: 'donghualife.com'
+                    }
+                })
+                await timeout(400);
             }
-
-            full = { videos: videos }
-
-            await timeout(400);
         } catch (error) {
             console.log(error)
         }
@@ -136,51 +167,66 @@ fastify.post('/chapter', async function handler(request, reply) {
     } else if (request.body.link.includes("mundodonghua")) {
 
         try {
-            const browser = await launch({
+            const before = await prisma.chapter.findFirst({ where: { link: request.body.link } })
 
-            });
-            const page = await browser.newPage();
-            await page.setDefaultNavigationTimeout(0);
-            await page.goto(request.body.link, {
-                waitUntil: "load",
-            });
-            const body = await page.content();
+            if (before) {
+                full = { videos: before.videos }
+                title = before.title
+            } else {
+                const browser = await launch({
 
-            const $$ = cheerio.load(body);
-            const html2 = $$("ul[class='nav nav-tabs'] li")
+                });
+                const page = await browser.newPage();
+                await page.setDefaultNavigationTimeout(0);
+                await page.goto(request.body.link, {
+                    waitUntil: "load",
+                });
+                const body = await page.content();
 
-            title = $$("title")
-                .first()
-                .text()
-                .replace(/\\n/g, "")
-                .trim()
+                const $$ = cheerio.load(body);
+                const html2 = $$("ul[class='nav nav-tabs'] li")
 
-            const videos = []
+                title = $$("title")
+                    .first()
+                    .text()
+                    .replace(/\\n/g, "")
+                    .trim()
 
-            const firstUrl = $$("#tamamo_player").first().attr().src
-            console.log(firstUrl)
+                const videos = []
 
-            await page.goto(firstUrl, {
-                waitUntil: "domcontentloaded",
-            });
-            const body2 = await page.content();
+                const firstUrl = $$("#tamamo_player").first().attr().src
+                console.log(firstUrl)
 
-            const $$2 = cheerio.load(body2);
-            const firstUrl2 = $$2("#player").first().attr().src
-            console.log(firstUrl2)
+                await page.goto(firstUrl, {
+                    waitUntil: "domcontentloaded",
+                });
+                const body2 = await page.content();
 
-            videos[0] = { link: firstUrl2, label: "tamamo_player" }
-            html2.each((i, elem) => {
-                console.log(elem.attribs)
-                videos.push({ link: request.body.link, label: elem.attribs.id })
-            });
-            full = { videos: videos }
-            await page.close()
+                const $$2 = cheerio.load(body2);
+                const firstUrl2 = $$2("#player").first().attr().src
+                console.log(firstUrl2)
+
+                videos[0] = { link: firstUrl2, label: "tamamo_player" }
+                html2.each((i, elem) => {
+                    console.log(elem.attribs)
+                    videos.push({ link: request.body.link, label: elem.attribs.id })
+                });
+                full = { videos: videos }
+                await page.close()
 
 
 
 
-            await browser.close();
+                await browser.close();
+                await prisma.chapter.create({
+                    data: {
+                        title: title,
+                        videos: videos,
+                        link: request.body.link,
+                        site: 'www.mundodonghua.com'
+                    }
+                })
+            }
         } catch (error) {
             console.log(error)
         }
@@ -223,46 +269,70 @@ fastify.post('/link', async function handler(request, reply) {
         });
         for (const iterator of capitulos.slice(salt)) {
             try {
-                const rp = await axios.get(iterator.url)
-                const $$ = cheerio.load(rp.data)
-                const html2 = $$(".mobius option")
-                const videos = []
-                html2.each((i, elem) => {
+                let videos = []
+                const before = await prisma.chapter.findFirst({ where: { link: iterator.url } })
+                let cpTitle = ""
+                if (before) {
+                    videos = before.videos
+                    cpTitle = before.title
 
-                    if (elem.attribs.value) {
-                        let buff = new Buffer(elem.attribs.value, 'base64');
-                        let text = buff.toString('ascii');
-
-                        const $$$ = cheerio.load(text)
-
-                        try {
-                            const uri = $$$("iframe").first().attr().src
+                    full.push({ ...iterator, videos: videos })
+                } else {
 
 
-                            if (uri.startsWith("//")) {
-                                videos.push({ link: "https:" + uri, label: elem.children[0].data })
-                            } else {
-                                videos.push({ link: uri, label: elem.children[0].data })
+                    const rp = await axios.get(iterator.url)
+                    const $$ = cheerio.load(rp.data)
+                    const html2 = $$(".mobius option")
+                    cpTitle = $$("title")
+                        .first()
+                        .text()
+                        .replace(/\\n/g, "")
+                        .trim()
+                    html2.each((i, elem) => {
+
+                        if (elem.attribs.value) {
+                            let buff = new Buffer(elem.attribs.value, 'base64');
+                            let text = buff.toString('ascii');
+
+                            const $$$ = cheerio.load(text)
+
+                            try {
+                                const uri = $$$("iframe").first().attr().src
+
+
+                                if (uri.startsWith("//")) {
+                                    videos.push({ link: "https:" + uri, label: elem.children[0].data })
+                                } else {
+                                    videos.push({ link: uri, label: elem.children[0].data })
+                                }
+
+                            } catch (error) {
+                                console.log(error)
                             }
+                        } else {
 
-                        } catch (error) {
-                            console.log(error)
                         }
-                    } else {
 
-                    }
+                    });
 
-                });
-
-                full.push({ ...iterator, videos: videos })
-
-                await timeout(500);
+                    full.push({ ...iterator, videos: videos })
+                    await prisma.chapter.create({
+                        data: {
+                            title: cpTitle,
+                            videos: videos,
+                            link: iterator.url,
+                            site: 'animexin.vip'
+                        }
+                    })
+                    await timeout(500);
+                }
             } catch (error) {
                 console.log(error)
             }
 
         }
     } else if (request.body.link.includes("donghualife")) {
+
         const { data } = await axios.get(request.body.link)
         const $ = cheerio.load(data)
         title = $("title")
@@ -281,38 +351,61 @@ fastify.post('/link', async function handler(request, reply) {
 
         for (const iterator of capitulos.slice(salt)) {
             try {
-                const rp = await axios.get(iterator.url)
-                const $$ = cheerio.load(rp.data)
-                const html2 = $$(".ListOptions li")
-                const videos = []
-                const meta = []
-                html2.each((i, elem) => {
+                let videos = []
+                const before = await prisma.chapter.findFirst({ where: { link: iterator.url } })
+                let cpTitle = ""
+                if (before) {
+                    videos = before.videos
+                    cpTitle = before.title
 
-                    if (elem.attribs['data-id']) {
-
-                        const rp = elem.children.find((el) => el.name === "p").children[0].data
-
-
-                        meta.push({ key: elem.attribs['data-key'], id: elem.attribs['data-id'], name: rp })
+                    full.push({ ...iterator, videos: videos })
+                } else {
 
 
+                    const rp = await axios.get(iterator.url)
+                    const $$ = cheerio.load(rp.data)
+                    const html2 = $$(".ListOptions li")
+                    cpTitle = $$("title")
+                        .first()
+                        .text()
+                        .replace(/\\n/g, "")
+                        .trim()
+                    const meta = []
+                    html2.each((i, elem) => {
+
+                        if (elem.attribs['data-id']) {
+
+                            const rp = elem.children.find((el) => el.name === "p").children[0].data
+
+
+                            meta.push({ key: elem.attribs['data-key'], id: elem.attribs['data-id'], name: rp })
+
+
+                        }
+
+                    });
+                    for (const met of meta) {
+                        const rp1 = await axios.get(`https://donghualife.com/?trembed=${met.key}&trid=${met.id}&trtype=2`)
+
+
+                        const $$$ = cheerio.load(rp1.data)
+
+                        const uri = $$$("iframe").first().attr().src
+
+                        videos.push({ link: uri, label: met.name })
                     }
 
-                });
-                for (const met of meta) {
-                    const rp1 = await axios.get(`https://donghualife.com/?trembed=${met.key}&trid=${met.id}&trtype=2`)
-
-
-                    const $$$ = cheerio.load(rp1.data)
-
-                    const uri = $$$("iframe").first().attr().src
-
-                    videos.push({ link: uri, label: met.name })
+                    full.push({ ...iterator, videos: videos })
+                    await prisma.chapter.create({
+                        data: {
+                            title: cpTitle,
+                            videos: videos,
+                            link: iterator.url,
+                            site: 'donghualife.com'
+                        }
+                    })
+                    await timeout(400);
                 }
-
-                full.push({ ...iterator, videos: videos })
-
-                await timeout(400);
             } catch (error) {
                 console.log(error)
             }
@@ -348,39 +441,61 @@ fastify.post('/link', async function handler(request, reply) {
         });
         for (const iterator of capitulos.reverse().slice(salt)) {
             try {
+                let videos = []
+                const before = await prisma.chapter.findFirst({ where: { link: iterator.url } })
+                let cpTitle = ""
+                if (before) {
+                    videos = before.videos
+                    cpTitle = before.title
 
-                const page = await browser.newPage();
-                await page.setDefaultNavigationTimeout(0);
-                await page.goto(iterator.url, {
-                    waitUntil: "load",
-                });
-                const body = await page.content();
+                    full.push({ ...iterator, videos: videos })
+                } else {
 
-                const $$ = cheerio.load(body);
-                const html2 = $$("ul[class='nav nav-tabs'] li")
 
-                const videos = []
+                    const page = await browser.newPage();
+                    await page.setDefaultNavigationTimeout(0);
+                    await page.goto(iterator.url, {
+                        waitUntil: "load",
+                    });
+                    const body = await page.content();
 
-                const firstUrl = $$("#tamamo_player").first().attr().src
-                console.log(firstUrl)
+                    const $$ = cheerio.load(body);
+                    const html2 = $$("ul[class='nav nav-tabs'] li")
+                    cpTitle = $$("title")
+                        .first()
+                        .text()
+                        .replace(/\\n/g, "")
+                        .trim()
 
-                await page.goto(firstUrl, {
-                    waitUntil: "domcontentloaded",
-                });
-                const body2 = await page.content();
 
-                const $$2 = cheerio.load(body2);
-                const firstUrl2 = $$2("#player").first().attr().src
-                console.log(firstUrl2)
+                    const firstUrl = $$("#tamamo_player").first().attr().src
+                    console.log(firstUrl)
 
-                videos[0] = { link: firstUrl2, label: "tamamo_player" }
-                html2.each((i, elem) => {
-                    console.log(elem.attribs)
-                    videos.push({ link: iterator.url, label: elem.attribs.id })
-                });
-                full.push({ ...iterator, videos: videos })
-                await page.close()
+                    await page.goto(firstUrl, {
+                        waitUntil: "domcontentloaded",
+                    });
+                    const body2 = await page.content();
 
+                    const $$2 = cheerio.load(body2);
+                    const firstUrl2 = $$2("#player").first().attr().src
+                    console.log(firstUrl2)
+
+                    videos[0] = { link: firstUrl2, label: "tamamo_player" }
+                    html2.each((i, elem) => {
+                        console.log(elem.attribs)
+                        videos.push({ link: iterator.url, label: elem.attribs.id })
+                    });
+                    full.push({ ...iterator, videos: videos })
+                    await prisma.chapter.create({
+                        data: {
+                            title: cpTitle,
+                            videos: videos,
+                            link: iterator.url,
+                            site: 'www.mundodonghua.com'
+                        }
+                    })
+                    await page.close()
+                }
             } catch (error) {
                 console.log(error)
             }
