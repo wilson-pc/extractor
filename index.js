@@ -333,7 +333,7 @@ fastify.post('/link', async function handler(request, reply) {
 
             }
         } else {
-            full = capitulos
+            full = capitulos.reverse()
         }
     } else if (request.body.link.includes("donghualife")) {
 
@@ -511,7 +511,7 @@ fastify.post('/link', async function handler(request, reply) {
             }
             await browser.close();
         } else {
-            full = capitulos
+            full = capitulos.reverse()
         }
     }
     reply.send({ data: full, title })
