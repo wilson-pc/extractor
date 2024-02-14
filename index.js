@@ -164,7 +164,7 @@ fastify.post('/chapter', async function handler(request, reply) {
         }
 
 
-    } else if (request.body.link.includes("mundodonghua")) {
+    } else if (request.body.link.includes("mundodonghua") || request.body.link.includes("nemonicplayer")) {
 
         try {
             const before = await prisma.chapter.findFirst({ where: { link: request.body.link } })
