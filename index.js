@@ -179,7 +179,7 @@ fastify.post('/chapter', async function handler(request, reply) {
                 const page = await browser.newPage();
                 await page.setDefaultNavigationTimeout(0);
                 await page.goto(request.body.link, {
-                    waitUntil: "load",
+                    waitUntil: "networkidle2",
                 });
                 const body = await page.content();
 
@@ -194,8 +194,11 @@ fastify.post('/chapter', async function handler(request, reply) {
 
                 const videos = []
 
-                const firstUrl = $$("#tamamo_player").first().attr().src
-                console.log(firstUrl)
+                let firstUrl = $$("#tamamo_player").first().attr().src
+
+                if (!firstUrl) {
+                    firstUrl = $$("#tamamo_tab").first().attr().src
+                }
 
                 await page.goto(firstUrl, {
                     waitUntil: "domcontentloaded",
