@@ -168,7 +168,7 @@ fastify.post('/chapter', async function handler(request, reply) {
 
         try {
             const before = await prisma.chapter.findFirst({ where: { link: request.body.link } })
-
+       
             if (before) {
                 full = { videos: before.videos }
                 title = before.title
@@ -275,6 +275,7 @@ fastify.post('/link', async function handler(request, reply) {
                 try {
                     let videos = []
                     const before = await prisma.chapter.findFirst({ where: { link: iterator.url } })
+                    
                     let cpTitle = ""
                     if (before) {
                         videos = before.videos
