@@ -564,11 +564,11 @@ fastify.post('/link', async function handler(request, reply) {
             .replace(/\\n/g, "")
             .trim()
         const html = $("#serie_contenido .episodiotitle a")
-           console.log(html)
+
         const capitulos = []
 
         html.each((i, elem) => {
-            console.log(elem.attribs)
+
             capitulos.push({ url: elem.attribs.href, title: elem.children[0].data })
         });
         if (!links) {
