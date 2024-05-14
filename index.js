@@ -233,7 +233,44 @@ fastify.post('/chapter', async function handler(request, reply) {
         } catch (error) {
             console.log(error)
         }
+    }else {
+        try {
+            const before = await prisma.chapter.findFirst({ where: { link: request.body.link } })
+
+            if (before) {
+                full = { videos: before.videos }
+                title = before.title
+            } else {
+                const rp = await axios.get(request.body.link)
+                const $$ = cheerio.load(rp.data)
+                const videos = []
+
+                title = $$("title")
+                    .first()
+                    .text()
+                    .replace(/\\n/g, "")
+                    .trim()
+                    const html2 =$$("iframe")
+                    html2.each((i, elem) => {
+                        videos.push({ link: elem.attribs.src, label: elem.attribs.src})
+                    });
+                    full = { videos: videos }
+                    await prisma.chapter.create({
+                        data: {
+                            title: title,
+                            videos: videos,
+                            link: request.body.link,
+                            site: new URL(request.body.link).origin
+                        }
+                    })
+
+            }
+        } catch (error) {
+            
+        }
+        
     }
+    
     reply.send({ data: full, title })
 })
 fastify.post('/link', async function handler(request, reply) {
@@ -517,7 +554,70 @@ fastify.post('/link', async function handler(request, reply) {
         } else {
             full = capitulos.reverse()
         }
-    }
+    }else if (request.body.link.includes("doramedplay")) {
+
+        const { data } = await axios.get(request.body.link)
+        const $ = cheerio.load(data)
+        title = $("title")
+            .first()
+            .text()
+            .replace(/\\n/g, "")
+            .trim()
+        const html = $("#serie_contenido .episodiotitle a")
+           console.log(html)
+        const capitulos = []
+
+        html.each((i, elem) => {
+            console.log(elem.attribs)
+            capitulos.push({ url: elem.attribs.href, title: elem.children[0].data })
+        });
+        if (!links) {
+            for (const iterator of capitulos.slice(salt)) {
+                try {
+                    let videos = []
+                    const before = await prisma.chapter.findFirst({ where: { link: iterator.url } })
+                    let cpTitle = ""
+                    if (before) {
+                        videos = before.videos
+                        cpTitle = before.title
+
+                        full.push({ ...iterator, videos: videos })
+                    } else {
+
+
+                        const rp = await axios.get(iterator.url)
+                        const $$ = cheerio.load(rp.data)
+                        const videos = []
+        
+                        title = $$("title")
+                            .first()
+                            .text()
+                            .replace(/\\n/g, "")
+                            .trim()
+                            const html2 =$$("iframe")
+                            html2.each((i, elem) => {
+                                videos.push({ link: elem.attribs.src, label: elem.attribs.src})
+                            });
+                            full.push({ ...iterator, videos: videos })
+                            await prisma.chapter.create({
+                                data: {
+                                    title: title,
+                                    videos: videos,
+                                    link: request.body.link,
+                                    site: new URL(request.body.link).origin
+                                }
+                            })
+                        await timeout(400);
+                    }
+                } catch (error) {
+                    console.log(error)
+                }
+
+            }
+        } else {
+            full = capitulos
+        }
+    } 
     reply.send({ data: full, title })
 })
 // Run the server!
