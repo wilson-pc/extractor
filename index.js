@@ -168,21 +168,28 @@ fastify.post('/chapter', async function handler(request, reply) {
 
         try {
             const before = await prisma.chapter.findFirst({ where: { link: request.body.link } })
-       
+
             if (before) {
                 full = { videos: before.videos }
                 title = before.title
             } else {
                 const browser = await launch({
-
+                    headless: true
                 });
                 const page = await browser.newPage();
                 await page.setDefaultNavigationTimeout(0);
                 await page.goto(request.body.link, {
-                    waitUntil: "networkidle2",
+                    waitUntil: "networkidle0",
                 });
-                const body = await page.content();
 
+                await page.waitForSelector('#tamamoplay')
+                await page.click('#tamamoplay')
+
+                await timeout(10000)
+                await page.waitForSelector('#tamamo_player');
+
+
+                const body = await page.content();
                 const $$ = cheerio.load(body);
                 const html2 = $$("ul[class='nav nav-tabs'] li")
 
@@ -199,7 +206,7 @@ fastify.post('/chapter', async function handler(request, reply) {
                 if (!firstUrl) {
                     firstUrl = $$("#tamamo_tab").first().attr().src
                 }
-
+                console.log("dwdwe", firstUrl)
                 await page.goto(firstUrl, {
                     waitUntil: "domcontentloaded",
                 });
@@ -233,7 +240,7 @@ fastify.post('/chapter', async function handler(request, reply) {
         } catch (error) {
             console.log(error)
         }
-    }else {
+    } else {
         try {
             const before = await prisma.chapter.findFirst({ where: { link: request.body.link } })
 
@@ -250,27 +257,27 @@ fastify.post('/chapter', async function handler(request, reply) {
                     .text()
                     .replace(/\\n/g, "")
                     .trim()
-                    const html2 =$$("iframe")
-                    html2.each((i, elem) => {
-                        videos.push({ link: elem.attribs.src, label: elem.attribs.src})
-                    });
-                    full = { videos: videos }
-                    await prisma.chapter.create({
-                        data: {
-                            title: title,
-                            videos: videos,
-                            link: request.body.link,
-                            site: new URL(request.body.link).origin
-                        }
-                    })
+                const html2 = $$("iframe")
+                html2.each((i, elem) => {
+                    videos.push({ link: elem.attribs.src, label: elem.attribs.src })
+                });
+                full = { videos: videos }
+                await prisma.chapter.create({
+                    data: {
+                        title: title,
+                        videos: videos,
+                        link: request.body.link,
+                        site: new URL(request.body.link).origin
+                    }
+                })
 
             }
         } catch (error) {
-            
+
         }
-        
+
     }
-    
+
     reply.send({ data: full, title })
 })
 fastify.post('/link', async function handler(request, reply) {
@@ -312,7 +319,7 @@ fastify.post('/link', async function handler(request, reply) {
                 try {
                     let videos = []
                     const before = await prisma.chapter.findFirst({ where: { link: iterator.url } })
-                    
+
                     let cpTitle = ""
                     if (before) {
                         videos = before.videos
@@ -486,7 +493,7 @@ fastify.post('/link', async function handler(request, reply) {
         });
         if (!links) {
             const browser = await launch({
-
+                headless: true
             });
             for (const iterator of capitulos.reverse().slice(salt)) {
                 try {
@@ -504,8 +511,15 @@ fastify.post('/link', async function handler(request, reply) {
                         const page = await browser.newPage();
                         await page.setDefaultNavigationTimeout(0);
                         await page.goto(iterator.url, {
-                            waitUntil: "load",
+                            waitUntil: "networkidle0",
                         });
+                        console.log("lleganan", iterator.url)
+                        await page.waitForSelector('#tamamoplay')
+                        await page.click('#tamamoplay')
+
+                        await timeout(10000)
+                        await page.waitForSelector('#tamamo_player');
+
                         const body = await page.content();
 
                         const $$ = cheerio.load(body);
@@ -554,7 +568,7 @@ fastify.post('/link', async function handler(request, reply) {
         } else {
             full = capitulos.reverse()
         }
-    }else if (request.body.link.includes("doramedplay")) {
+    } else if (request.body.link.includes("doramedplay")) {
 
         const { data } = await axios.get(request.body.link)
         const $ = cheerio.load(data)
@@ -588,25 +602,25 @@ fastify.post('/link', async function handler(request, reply) {
                         const rp = await axios.get(iterator.url)
                         const $$ = cheerio.load(rp.data)
                         const videos = []
-        
+
                         title = $$("title")
                             .first()
                             .text()
                             .replace(/\\n/g, "")
                             .trim()
-                            const html2 =$$("iframe")
-                            html2.each((i, elem) => {
-                                videos.push({ link: elem.attribs.src, label: elem.attribs.src})
-                            });
-                            full.push({ ...iterator, videos: videos })
-                            await prisma.chapter.create({
-                                data: {
-                                    title: title,
-                                    videos: videos,
-                                    link: request.body.link,
-                                    site: new URL(request.body.link).origin
-                                }
-                            })
+                        const html2 = $$("iframe")
+                        html2.each((i, elem) => {
+                            videos.push({ link: elem.attribs.src, label: elem.attribs.src })
+                        });
+                        full.push({ ...iterator, videos: videos })
+                        await prisma.chapter.create({
+                            data: {
+                                title: title,
+                                videos: videos,
+                                link: request.body.link,
+                                site: new URL(request.body.link).origin
+                            }
+                        })
                         await timeout(400);
                     }
                 } catch (error) {
@@ -617,7 +631,7 @@ fastify.post('/link', async function handler(request, reply) {
         } else {
             full = capitulos
         }
-    } 
+    }
     reply.send({ data: full, title })
 })
 // Run the server!
