@@ -174,7 +174,7 @@ fastify.post('/chapter', async function handler(request, reply) {
                 title = before.title
             } else {
                 const browser = await launch({
-                    headless: true
+                    headless: false
                 });
                 const page = await browser.newPage();
                 await page.setDefaultNavigationTimeout(0);
@@ -185,7 +185,8 @@ fastify.post('/chapter', async function handler(request, reply) {
                 await page.waitForSelector('#tamamoplay')
                 await page.click('#tamamoplay')
 
-                await timeout(10000)
+
+                await timeout(5000)
                 await page.waitForSelector('#tamamo_player');
 
 
@@ -517,7 +518,7 @@ fastify.post('/link', async function handler(request, reply) {
                         await page.waitForSelector('#tamamoplay')
                         await page.click('#tamamoplay')
 
-                        await timeout(10000)
+                        await timeout(5000)
                         await page.waitForSelector('#tamamo_player');
 
                         const body = await page.content();
