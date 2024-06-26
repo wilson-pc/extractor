@@ -174,7 +174,7 @@ fastify.post('/chapter', async function handler(request, reply) {
                 title = before.title
             } else {
                 const browser = await launch({
-                    headless: false
+                    headless: true
                 });
                 const page = await browser.newPage();
                 await page.setDefaultNavigationTimeout(0);
@@ -182,14 +182,12 @@ fastify.post('/chapter', async function handler(request, reply) {
                     waitUntil: "networkidle0",
                 });
 
+
                 await page.waitForSelector('#tamamoplay')
                 await page.click('#tamamoplay')
-
-
-                await timeout(5000)
                 await page.waitForSelector('#tamamo_player');
 
-
+                await timeout(5000)
                 const body = await page.content();
                 const $$ = cheerio.load(body);
                 const html2 = $$("ul[class='nav nav-tabs'] li")
