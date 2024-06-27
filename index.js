@@ -512,12 +512,11 @@ fastify.post('/link', async function handler(request, reply) {
                         await page.goto(iterator.url, {
                             waitUntil: "networkidle0",
                         });
-                        console.log("lleganan", iterator.url)
                         await page.waitForSelector('#tamamoplay')
                         await page.click('#tamamoplay')
+                        await page.waitForSelector('#tamamo_player');
 
                         await timeout(5000)
-                        await page.waitForSelector('#tamamo_player');
 
                         const body = await page.content();
 
