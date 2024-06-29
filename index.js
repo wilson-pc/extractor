@@ -517,12 +517,15 @@ fastify.post('/link', async function handler(request, reply) {
 
                         const page = await browser.newPage();
                         await page.setDefaultNavigationTimeout(0);
+                        console.log(iterator.url)
                         await page.goto(iterator.url, {
                             waitUntil: "networkidle2",
                         });
+                        console.log(iterator.url)
                         if (iterator.url.includes("mundodonghua")) {
 
 
+                           try {
                             await page.waitForSelector('#tamamoplay')
                             const productType = await page.$('#creative_iframe');
                             if (productType) {
@@ -531,6 +534,9 @@ fastify.post('/link', async function handler(request, reply) {
                             }
                             await page.click('#tamamoplay')
                             await page.waitForSelector('#tamamo_player');
+                           } catch (error) {
+                            console.log(iterator.url,)
+                           }
                         }
                         await timeout(5000)
 
