@@ -491,11 +491,11 @@ fastify.post('/link', async function handler(request, reply) {
                 })
             } else {
 
-               if( elem.attribs.href.includes('https:')){
-                capitulos.push({ url:  elem.attribs.href, title: $$('blockquote').first().text() })
-               }else {
-                capitulos.push({ url: "https://www.mundodonghua.com" + elem.attribs.href, title: $$('blockquote').first().text() })
-               }
+                if (elem.attribs.href.includes('https:')) {
+                    capitulos.push({ url: elem.attribs.href, title: $$('blockquote').first().text() })
+                } else {
+                    capitulos.push({ url: "https://www.mundodonghua.com" + elem.attribs.href, title: $$('blockquote').first().text() })
+                }
             }
         });
         if (!links) {
@@ -518,17 +518,20 @@ fastify.post('/link', async function handler(request, reply) {
                         const page = await browser.newPage();
                         await page.setDefaultNavigationTimeout(0);
                         await page.goto(iterator.url, {
-                            waitUntil: "networkidle0",
+                            waitUntil: "networkidle2",
                         });
-                        await page.waitForSelector('#tamamoplay')
-                        const productType = await page.$('#creative_iframe');
-                        if (productType) {
-                            // El elemento existe, puedes hacer algo con su contenido
-                            await page.$eval('#creative_iframe', el => el.remove());
-                        }
-                        await page.click('#tamamoplay')
-                        await page.waitForSelector('#tamamo_player');
+                        if (iterator.url.includes("mundodonghua")) {
 
+
+                            await page.waitForSelector('#tamamoplay')
+                            const productType = await page.$('#creative_iframe');
+                            if (productType) {
+                                // El elemento existe, puedes hacer algo con su contenido
+                                await page.$eval('#creative_iframe', el => el.remove());
+                            }
+                            await page.click('#tamamoplay')
+                            await page.waitForSelector('#tamamo_player');
+                        }
                         await timeout(5000)
 
                         const body = await page.content();
@@ -543,7 +546,7 @@ fastify.post('/link', async function handler(request, reply) {
 
 
                         const firstUrl = $$("#tamamo_player").first().attr().src
-                        console.log(firstUrl)
+
 
                         await page.goto(firstUrl, {
                             waitUntil: "domcontentloaded",
