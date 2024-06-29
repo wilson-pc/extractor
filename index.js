@@ -491,8 +491,11 @@ fastify.post('/link', async function handler(request, reply) {
                 })
             } else {
 
-
+               if( elem.attribs.href.includes('https:')){
+                capitulos.push({ url:  elem.attribs.href, title: $$('blockquote').first().text() })
+               }else {
                 capitulos.push({ url: "https://www.mundodonghua.com" + elem.attribs.href, title: $$('blockquote').first().text() })
+               }
             }
         });
         if (!links) {
