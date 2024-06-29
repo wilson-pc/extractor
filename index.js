@@ -184,6 +184,11 @@ fastify.post('/chapter', async function handler(request, reply) {
 
 
                 await page.waitForSelector('#tamamoplay')
+                const productType = await page.$('#creative_iframe');
+                if (productType) {
+                    // El elemento existe, puedes hacer algo con su contenido
+                    await page.$eval('#creative_iframe', el => el.remove());
+                }
                 await page.click('#tamamoplay')
                 await page.waitForSelector('#tamamo_player');
 
@@ -513,6 +518,11 @@ fastify.post('/link', async function handler(request, reply) {
                             waitUntil: "networkidle0",
                         });
                         await page.waitForSelector('#tamamoplay')
+                        const productType = await page.$('#creative_iframe');
+                        if (productType) {
+                            // El elemento existe, puedes hacer algo con su contenido
+                            await page.$eval('#creative_iframe', el => el.remove());
+                        }
                         await page.click('#tamamoplay')
                         await page.waitForSelector('#tamamo_player');
 
