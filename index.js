@@ -192,7 +192,7 @@ fastify.post('/chapter', async function handler(request, reply) {
                 await page.click('#tamamoplay')
                 await page.waitForSelector('#tamamo_player');
 
-                await timeout(5000)
+                await timeout(7000)
                 const body = await page.content();
                 const $$ = cheerio.load(body);
                 const html2 = $$("ul[class='nav nav-tabs'] li")
@@ -206,19 +206,18 @@ fastify.post('/chapter', async function handler(request, reply) {
                 const videos = []
 
                 let firstUrl = $$("#tamamo_player").first().attr().src
+                let selector = "#tamamo_player"
 
                 if (!firstUrl) {
                     firstUrl = $$("#tamamo_tab").first().attr().src
+                    selector = "#tamamo_tab"
                 }
-                console.log("dwdwe", firstUrl)
-                await page.goto(firstUrl, {
-                    waitUntil: "domcontentloaded",
-                });
-                const body2 = await page.content();
 
-                const $$2 = cheerio.load(body2);
-                const firstUrl2 = $$2("#player").first().attr().src
-                console.log(firstUrl2)
+                const frameHandle = await page.$(selector); // Selector del iframe
+                const frame = await frameHandle.contentFrame(); // Acceder al frame
+
+                const firstUrl2 = cheerio.load(await frame.content())("#player").first().attr().src
+
 
                 videos[0] = { link: firstUrl2, label: "tamamo_player" }
                 html2.each((i, elem) => {
@@ -523,22 +522,20 @@ fastify.post('/link', async function handler(request, reply) {
                         });
                         console.log(iterator.url)
                         if (iterator.url.includes("mundodonghua")) {
-
-
-                           try {
-                            await page.waitForSelector('#tamamoplay')
-                            const productType = await page.$('#creative_iframe');
-                            if (productType) {
-                                // El elemento existe, puedes hacer algo con su contenido
-                                await page.$eval('#creative_iframe', el => el.remove());
+                            try {
+                                await page.waitForSelector('#tamamoplay')
+                                const productType = await page.$('#creative_iframe');
+                                if (productType) {
+                                    // El elemento existe, puedes hacer algo con su contenido
+                                    await page.$eval('#creative_iframe', el => el.remove());
+                                }
+                                await page.click('#tamamoplay')
+                                await page.waitForSelector('#tamamo_player');
+                            } catch (error) {
+                                console.log(iterator.url,)
                             }
-                            await page.click('#tamamoplay')
-                            await page.waitForSelector('#tamamo_player');
-                           } catch (error) {
-                            console.log(iterator.url,)
-                           }
                         }
-                        await timeout(5000)
+                        await timeout(7000)
 
                         const body = await page.content();
 
@@ -549,18 +546,18 @@ fastify.post('/link', async function handler(request, reply) {
                             .text()
                             .replace(/\\n/g, "")
                             .trim()
+                        let firstUrl = $$("#tamamo_player").first().attr().src
+                        let selector = "#tamamo_player"
 
+                        if (!firstUrl) {
+                            firstUrl = $$("#tamamo_tab").first().attr().src
+                            selector = "#tamamo_tab"
+                        }
 
-                        const firstUrl = $$("#tamamo_player").first().attr().src
+                        const frameHandle = await page.$(selector); // Selector del iframe
+                        const frame = await frameHandle.contentFrame(); // Acceder al frame
 
-
-                        await page.goto(firstUrl, {
-                            waitUntil: "domcontentloaded",
-                        });
-                        const body2 = await page.content();
-
-                        const $$2 = cheerio.load(body2);
-                        const firstUrl2 = $$2("#player").first().attr().src
+                        const firstUrl2 = cheerio.load(await frame.content())("#player").first().attr().src
                         console.log(firstUrl2)
 
                         videos[0] = { link: firstUrl2, label: "tamamo_player" }
