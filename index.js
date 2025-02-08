@@ -177,7 +177,7 @@ fastify.post('/chapter', async function handler(request, reply) {
 
         try {
             const before = await prisma.chapter.findFirst({ where: { link: request.body.link } })
-     
+
             if (before) {
                 full = { videos: before.videos }
                 title = before.title
@@ -194,26 +194,26 @@ fastify.post('/chapter', async function handler(request, reply) {
                 const videos = []
                 const tempLinks = []
                 html2.each((i, elem) => {
-                          
+
                     if (elem.attribs.value) {
-                     tempLinks.push({link: elem.attribs.value, label: elem.children[0].data})
+                        tempLinks.push({ link: elem.attribs.value, label: elem.children[0].data })
                     } else {
 
                     }
 
                 });
 
-            for (const element of tempLinks) {
-                const rpp = await axios.get(element.link)
+                for (const element of tempLinks) {
+                    const rpp = await axios.get(element.link)
 
-                const $t = cheerio.load(rpp.data)
-                const linkf= $t("iframe").first().attr().src
-                if (linkf.startsWith("//")) {
-                    videos.push({ link: "https:" + linkf, label: element.label })
-                } else {
-                    videos.push({link: linkf, label: element.label})
+                    const $t = cheerio.load(rpp.data)
+                    const linkf = $t("iframe").first().attr().src
+                    if (linkf.startsWith("//")) {
+                        videos.push({ link: "https:" + linkf, label: element.label })
+                    } else {
+                        videos.push({ link: linkf, label: element.label })
+                    }
                 }
-            }
 
                 full = { videos: videos }
                 await prisma.chapter.create({
@@ -231,7 +231,7 @@ fastify.post('/chapter', async function handler(request, reply) {
         }
 
 
-    }else if (request.body.link.includes("donghualife")) {
+    } else if (request.body.link.includes("donghualife")) {
 
 
         try {
@@ -309,7 +309,15 @@ fastify.post('/chapter', async function handler(request, reply) {
                     waitUntil: "networkidle0",
                 });
 
-
+                browser.on('targetcreated', async (target) => {
+                    if (target.type() === 'page') {
+                      const newPage = await target.page();
+                      if (newPage) {
+                        console.log('Nueva pestaña abierta, cerrando...');
+                        await newPage.close();
+                      }
+                    }
+                  });
                 await page.waitForSelector('#tamamoplay')
                 const productType = await page.$('#creative_iframe');
                 if (productType) {
@@ -340,10 +348,92 @@ fastify.post('/chapter', async function handler(request, reply) {
                     selector = "#tamamo_tab"
                 }
 
-                const frameHandle = await page.$(selector); // Selector del iframe
-                const frame = await frameHandle.contentFrame(); // Acceder al frame
+                let frameHandle = await page.$(selector); // Selector del iframe
 
-                const firstUrl2 = cheerio.load(await frame.content())("#player").first().attr().src
+                let frame = await frameHandle.contentFrame(); // Acceder al frame
+
+             
+
+                if (!frame) {
+                    try {
+                        await page.click('#tamamoplay')
+                        await timeout(2000)
+                        frameHandle = await page.$(selector);
+                        frame = await frameHandle.contentFrame();
+                    } catch (error) {
+
+                    }
+                }
+
+                if (!frame) {
+                    try {
+                        await page.click('#tamamoplay')
+                        await timeout(2000)
+                        frameHandle = await page.$(selector);
+                        frame = await frameHandle.contentFrame();
+                    } catch (error) {
+
+                    }
+                }
+
+                if (!frame) {
+                    try {
+                        await page.click('#tamamoplay')
+                        await timeout(2000)
+                        frameHandle = await page.$(selector);
+                        frame = await frameHandle.contentFrame();
+                    } catch (error) {
+
+                    }
+                }
+
+                if (!frame) {
+                    try {
+                        await page.click('#tamamoplay')
+                        await timeout(2000)
+                        frameHandle = await page.$(selector);
+                        frame = await frameHandle.contentFrame();
+                    } catch (error) {
+
+                    }
+                }
+
+                if (!frame) {
+                    try {
+                        await page.click('#tamamoplay')
+                        await timeout(2000)
+                        frameHandle = await page.$(selector);
+                        frame = await frameHandle.contentFrame();
+                    } catch (error) {
+
+                    }
+                }
+
+                if (!frame) {
+                    try {
+                        await page.click('#tamamoplay')
+                        await timeout(2000)
+                        frameHandle = await page.$(selector);
+                        frame = await frameHandle.contentFrame();
+                    } catch (error) {
+
+                    }
+                }
+                const dewe =cheerio.load(await page.content())
+                let framesss= dewe("#tamamo_player").attr()
+                
+                    if(framesss?.src.includes("mdnemonicplayer")){
+                        await page.goto(framesss.src, {
+                            waitUntil: "networkidle0",
+                        });
+                     await page.waitForSelector('#player')
+                     const dfs= await page.content()
+                        const $t = cheerio.load(dfs)
+                        framesss=$t("iframe").first().attr()
+
+                      
+                    }
+                const firstUrl2 = framesss.src
 
 
                 videos[0] = { link: firstUrl2, label: "tamamo_player" }
@@ -440,10 +530,10 @@ fastify.post('/link', async function handler(request, reply) {
         const capitulos = []
 
         html.each((i, elem) => {
-          //  console.log(elem.children[0])
+            //  console.log(elem.children[0])
             const elem2 = cheerio.load(elem)
-            const title= elem2(".epl-title").first().text()
-            capitulos.push({ url: elem.attribs.href, title: title})
+            const title = elem2(".epl-title").first().text()
+            capitulos.push({ url: elem.attribs.href, title: title })
         });
         if (!links) {
             for (const iterator of capitulos.slice(salt)) {
@@ -682,11 +772,93 @@ fastify.post('/link', async function handler(request, reply) {
                             selector = "#tamamo_tab"
                         }
 
-                        const frameHandle = await page.$(selector); // Selector del iframe
-                        const frame = await frameHandle.contentFrame(); // Acceder al frame
+                        let frameHandle = await page.$(selector); // Selector del iframe
 
-                        const firstUrl2 = cheerio.load(await frame.content())("#player").first().attr().src
-                        console.log(firstUrl2)
+                        let frame = await frameHandle.contentFrame(); // Acceder al frame
+        
+                     
+        
+                        if (!frame) {
+                            try {
+                                await page.click('#tamamoplay')
+                                await timeout(2000)
+                                frameHandle = await page.$(selector);
+                                frame = await frameHandle.contentFrame();
+                            } catch (error) {
+        
+                            }
+                        }
+        
+                        if (!frame) {
+                            try {
+                                await page.click('#tamamoplay')
+                                await timeout(2000)
+                                frameHandle = await page.$(selector);
+                                frame = await frameHandle.contentFrame();
+                            } catch (error) {
+        
+                            }
+                        }
+        
+                        if (!frame) {
+                            try {
+                                await page.click('#tamamoplay')
+                                await timeout(2000)
+                                frameHandle = await page.$(selector);
+                                frame = await frameHandle.contentFrame();
+                            } catch (error) {
+        
+                            }
+                        }
+        
+                        if (!frame) {
+                            try {
+                                await page.click('#tamamoplay')
+                                await timeout(2000)
+                                frameHandle = await page.$(selector);
+                                frame = await frameHandle.contentFrame();
+                            } catch (error) {
+        
+                            }
+                        }
+        
+                        if (!frame) {
+                            try {
+                                await page.click('#tamamoplay')
+                                await timeout(2000)
+                                frameHandle = await page.$(selector);
+                                frame = await frameHandle.contentFrame();
+                            } catch (error) {
+        
+                            }
+                        }
+        
+                        if (!frame) {
+                            try {
+                                await page.click('#tamamoplay')
+                                await timeout(2000)
+                                frameHandle = await page.$(selector);
+                                frame = await frameHandle.contentFrame();
+                            } catch (error) {
+        
+                            }
+                        }
+                        const dewe =cheerio.load(await page.content())
+                        let framesss= dewe("#tamamo_player").attr()
+                        
+                            if(framesss?.src.includes("mdnemonicplayer")){
+                                await page.goto(framesss.src, {
+                                    waitUntil: "networkidle0",
+                                });
+                             await page.waitForSelector('#player')
+                             const dfs= await page.content()
+                                const $t = cheerio.load(dfs)
+                                framesss=$t("iframe").first().attr()
+        
+                              
+                            }
+                        const firstUrl2 = framesss.src
+        
 
                         videos[0] = { link: firstUrl2, label: "tamamo_player" }
                         html2.each((i, elem) => {
