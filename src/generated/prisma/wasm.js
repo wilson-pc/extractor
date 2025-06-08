@@ -26,7 +26,7 @@ const {
   Public,
   getRuntime,
   createParam,
-} = require('./runtime/wasm.js')
+} = require('./runtime/wasm-compiler-edge.js')
 
 
 const Prisma = {}
@@ -35,12 +35,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 6.8.2
- * Query Engine version: 2060c79ba17c6bb9f5823312b6f6b7f4a845738e
+ * Prisma Client JS version: 6.9.0
+ * Query Engine version: 81e4af48011447c3cc503a190e86995b66d2a28e
  */
 Prisma.prismaVersion = {
-  client: "6.8.2",
-  engine: "2060c79ba17c6bb9f5823312b6f6b7f4a845738e"
+  client: "6.9.0",
+  engine: "81e4af48011447c3cc503a190e86995b66d2a28e"
 }
 
 Prisma.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
@@ -133,7 +133,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "D:\\proyectos\\extractor-ts\\src\\generated\\prisma",
+      "value": "D:\\proyectos\\extractor\\src\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -150,7 +150,7 @@ const config = {
       "driverAdapters",
       "queryCompiler"
     ],
-    "sourceFilePath": "D:\\proyectos\\extractor-ts\\prisma\\schema.prisma",
+    "sourceFilePath": "D:\\proyectos\\extractor\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -158,8 +158,8 @@ const config = {
     "schemaEnvPath": "../../../.env"
   },
   "relativePath": "../../../prisma",
-  "clientVersion": "6.8.2",
-  "engineVersion": "2060c79ba17c6bb9f5823312b6f6b7f4a845738e",
+  "clientVersion": "6.9.0",
+  "engineVersion": "81e4af48011447c3cc503a190e86995b66d2a28e",
   "datasourceNames": [
     "db"
   ],
@@ -181,15 +181,15 @@ config.dirname = '/'
 
 config.runtimeDataModel = JSON.parse("{\"models\":{\"Donghua\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"link\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"site\",\"kind\":\"scalar\",\"type\":\"String\"}],\"dbName\":null},\"Chapter\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"link\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"site\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"videos\",\"kind\":\"scalar\",\"type\":\"Json\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
-config.engineWasm = {
-  getRuntime: async () => require('./query_engine_bg.js'),
-  getQueryEngineWasmModule: async () => {
-    const loader = (await import('#wasm-engine-loader')).default
-    const engine = (await loader).default
-    return engine
+config.engineWasm = undefined
+config.compilerWasm = {
+  getRuntime: async () => require('./query_compiler_bg.js'),
+  getQueryCompilerWasmModule: async () => {
+    const loader = (await import('#wasm-compiler-loader')).default
+    const compiler = (await loader).default
+    return compiler
   }
 }
-config.compilerWasm = undefined
 
 config.injectableEdgeEnv = () => ({
   parsed: {

@@ -17,9 +17,7 @@ export async function animexin(link: string) {
 
       return {
         data: {
-          videos: before.videos.map((vid: any) => {
-            return JSON.parse(vid) as Video // TOD
-          })
+          videos: before.videos
         },
         title: before.title
       }

@@ -20,9 +20,7 @@ export async function mundodonghua(link: string) {
       title = before.title
       return {
         data: {
-          videos: before.videos.map((vid: any) => {
-            return JSON.parse(vid) as Video // TOD
-          })
+           videos: before.videos
         },
         title: before.title
       }
