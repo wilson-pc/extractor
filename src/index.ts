@@ -8,6 +8,7 @@ import { mundodonghuaTodo } from './todo/mundodonghua'
 import { doramedplayTodo } from './todo/doramedplay'
 import { lmanimeTodo } from './todo/lmanime'
 import { donghualife } from './sites/donghualife'
+import { donghualifeTodo } from './todo/donghualife'
 
 const app = new Hono()
 
@@ -97,10 +98,16 @@ app.post('/link', async (c) => {
     } else {
       return c.json({ error: 'Not found' }, 500)
     }
+  } else if (link.includes('donghualife')) {
+    const rs = await donghualifeTodo(link, links, salt)
+    if (rs) {
+      return c.json(rs)
+    } else {
+      return c.json({ error: 'Not found' }, 500)
+    }
   }
 })
 export default {
   fetch: app.fetch,
-  port: process.env.PORT || 3000,
- 
+  port: process.env.PORT || 3000
 }

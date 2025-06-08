@@ -3,7 +3,6 @@ import * as cheerio from 'cheerio'
 import { prisma } from '../db/prisma'
 import { Video } from '../types/video'
 import { timeout } from '../utils/timeout'
-import { connect } from 'puppeteer-real-browser'
 
 export async function donghualife(link: string) {
   let title = ''
@@ -21,66 +20,24 @@ export async function donghualife(link: string) {
         title: before.title
       }
     } else {
-      const { page, browser } = await connect({
-        headless: false,
+      
+      const {data} = await axios.get(link)
 
-        args: [],
-
-        customConfig: {},
-
-        turnstile: true,
-
-        connectOption: {},
-
-        disableXvfb: false,
-        ignoreAllFlags: false
-      })
-      try {
-        await page.evaluateOnNewDocument(() => {
-          window.open = (...args) => {
-            console.log('Bloqueado window.open con args:', args)
-            return window // devuelve la misma ventana
-          }
-        })
-        await page.goto(link, {
-          waitUntil: 'networkidle2'
-        })
-
-        await timeout(18000)
-      } catch (error) {
-        await browser.close()
-      }
-      const body = await page.content()
-      const $$ = cheerio.load(body)
+      const $$ = cheerio.load(data)
 
       title = $$('title').first().text().replace(/\\n/g, '').trim()
-      const html2 = $$('.ListOptions li')
-      const videos = []
-      const meta: any[] = []
+      const html2 = $$('.embed-links li a')
+      const videos:{link:string,label:string}[] = []
       html2.each((i, elem) => {
-        if (elem.attribs['data-id']) {
-          const rp = elem?.children?.find((el) => el.name === 'p').children[0]
-            .data
+        if (elem.attribs['data-video']) {
+          const rp = elem.attribs['data-video'].replace(/\\n/g, '').trim()
+          const name = elem.attribs['title'].replace(/\\n/g, '').trim()
 
-          meta.push({
-            key: elem.attribs['data-key'],
-            id: elem.attribs['data-id'],
-            name: rp
-          })
+           videos.push({ link: rp, label:name})
         }
       })
-      for (const met of meta) {
-        const rp1 = await axios.get(
-          `https://donghualife.com/?trembed=${met.key}&trid=${met.id}&trtype=2`
-        )
 
-        const $$$ = cheerio.load(rp1.data)
-
-        const uri = $$$('iframe').first()?.attr()?.src
-
-        videos.push({ link: uri, label: met.name })
-      }
-      await browser.close()
+      
       if (videos.length === 0) {
         return null
       }
