@@ -40,9 +40,7 @@ export async function donghualifeTodo(
 
           full.push({
             ...iterator,
-            videos: videos.map((vid: any) => {
-              return JSON.parse(vid) as Video // TOD
-            })
+            videos: videos
           })
         } else {
           const capt = await donghualife(iterator.url)
