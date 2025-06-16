@@ -56,9 +56,7 @@ export async function mundodonghuaTodo(
 
           full.push({
             ...iterator,
-            videos: videos.map((vid: any) => {
-              return JSON.parse(vid) as Video // TOD
-            })
+            videos: videos
           })
         } else {
           const capt = await mundodonghua(iterator.url)
