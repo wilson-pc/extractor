@@ -5,16 +5,16 @@
     "start": "bun run src/index.ts"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^6.9.0",
-    "@prisma/client": "^6.9.0",
+    "@prisma/adapter-pg": "^6.10.1",
+    "@prisma/client": "^6.10.1",
     "axios": "^1.9.0",
     "cheerio": "^1.0.0",
-    "hono": "^4.7.10",
-    "puppeteer-core": "^24.8.2",
+    "hono": "^4.8.3",
+    "puppeteer-core": "^24.11.1",
     "puppeteer-real-browser": "^1.4.2"
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "prisma": "^6.9.0"
+    "prisma": "^6.10.1"
   }
 }
