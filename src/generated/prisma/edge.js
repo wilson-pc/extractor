@@ -35,12 +35,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 6.10.1
- * Query Engine version: 9b628578b3b7cae625e8c927178f15a170e74a9c
+ * Prisma Client JS version: 6.16.1
+ * Query Engine version: 1c57fdcd7e44b29b9313256c76699e91c3ac3c43
  */
 Prisma.prismaVersion = {
-  client: "6.10.1",
-  engine: "9b628578b3b7cae625e8c927178f15a170e74a9c"
+  client: "6.16.1",
+  engine: "1c57fdcd7e44b29b9313256c76699e91c3ac3c43"
 }
 
 Prisma.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
@@ -133,7 +133,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "D:\\proyectos\\extractor\\src\\generated\\prisma",
+      "value": "C:\\proyectos\\personal\\extractor\\src\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -146,20 +146,17 @@ const config = {
         "native": true
       }
     ],
-    "previewFeatures": [
-      "driverAdapters",
-      "queryCompiler"
-    ],
-    "sourceFilePath": "D:\\proyectos\\extractor\\prisma\\schema.prisma",
+    "previewFeatures": [],
+    "sourceFilePath": "C:\\proyectos\\personal\\extractor\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": null,
+    "rootEnvPath": "../../../.env",
     "schemaEnvPath": "../../../.env"
   },
   "relativePath": "../../../prisma",
-  "clientVersion": "6.10.1",
-  "engineVersion": "9b628578b3b7cae625e8c927178f15a170e74a9c",
+  "clientVersion": "6.16.1",
+  "engineVersion": "1c57fdcd7e44b29b9313256c76699e91c3ac3c43",
   "datasourceNames": [
     "db"
   ],
@@ -173,8 +170,8 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider        = \"prisma-client-js\"\n  output          = \"../src/generated/prisma\"\n  previewFeatures = [\"queryCompiler\", \"driverAdapters\"]\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Donghua {\n  id    String @id @default(uuid())\n  title String\n  link  String\n  site  String\n}\n\nmodel Chapter {\n  id     String @id @default(uuid())\n  title  String\n  link   String\n  site   String\n  videos Json[]\n}\n",
-  "inlineSchemaHash": "6161e386cf24a4f79cee4261e05e705765456bb3a83f8e8be42852597d085024",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider   = \"prisma-client-js\"\n  output     = \"../src/generated/prisma\"\n  engineType = \"client\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Donghua {\n  id    String @id @default(uuid())\n  title String\n  link  String\n  site  String\n}\n\nmodel Chapter {\n  id     String @id @default(uuid())\n  title  String\n  link   String\n  site   String\n  videos Json[]\n}\n",
+  "inlineSchemaHash": "6fc4b0c4d026e9b56cf5377f698468c1fcb2dc9b2d992f119f24d0ce6d24c98b",
   "copyEngine": true
 }
 config.dirname = '/'
