@@ -5,16 +5,20 @@
     "start": "bun run src/index.ts"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^6.16.1",
-    "@prisma/client": "^6.16.1",
+    "@libsql/client": "^0.15.15",
+    "@paralleldrive/cuid2": "^3.0.4",
+    "@tursodatabase/database": "^0.3.2",
     "axios": "^1.9.0",
     "cheerio": "^1.0.0",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.45.1",
     "hono": "^4.9.7",
     "puppeteer-core": "^24.20.0",
     "puppeteer-real-browser": "^1.4.4"
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "prisma": "^6.16.1"
+    "drizzle-kit": "^0.31.8",
+    "tsx": "^4.21.0"
   }
 }
