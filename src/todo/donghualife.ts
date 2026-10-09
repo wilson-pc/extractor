@@ -69,7 +69,7 @@ export async function donghualifeTodo(
 
           if (capt) {
             full.push({ ...iterator, videos: capt.data.videos });
-            await sleep(1000);
+            await sleep(3000);
           }
         }
       } catch (error) {
