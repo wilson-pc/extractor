@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 import db from "../db";
-import { eq } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 import { chapter } from "../db/schema";
 import { Video } from "../types/video";
 import { timeout } from "../utils/timeout";
@@ -27,6 +27,10 @@ export async function donghualifeTodo(
   const json = JSON.parse(ss.replace(/\\"/g, '"'));
 
   const slug = data.split(`seriesSlug\\":\\"`)[1].split(`\\"`)[0];
+  const cdfdfe = data
+    .split(`TVSeries\\\",\\\"name\\\":\\\"`)[1]
+    .split(`\\\"`)[0];
+  title = cdfdfe.trim();
 
   for (const element of json) {
     const rp = await axios.get(
@@ -44,18 +48,32 @@ export async function donghualifeTodo(
     for (const episodio of episodios) {
       capitulos.push({
         url: `https://donghualife.com/watch/${element.slug}-${episodio.number}`,
-        title: `${element.label} - ${episodio.title}`,
+        title: `${title} - ${element.label} - ${episodio.title}`,
       });
     }
   }
 
   if (!links) {
-    for (const iterator of capitulos.slice(salt)) {
+    const capitulosToProcess = capitulos.slice(salt);
+    const existingChapters = capitulosToProcess.length
+      ? await db.query.chapter.findMany({
+          where: inArray(
+            chapter.link,
+            capitulosToProcess.map((iterator) => iterator.url),
+          ),
+        })
+      : [];
+    const chaptersByUrl = new Map(
+      existingChapters.map((existingChapter) => [
+        existingChapter.link,
+        existingChapter,
+      ]),
+    );
+
+    for (const iterator of capitulosToProcess) {
       try {
         let videos = [];
-        const before = await db.query.chapter.findFirst({
-          where: eq(chapter.link, iterator.url),
-        });
+        const before = chaptersByUrl.get(iterator.url);
 
         if (before) {
           videos = before.videos;

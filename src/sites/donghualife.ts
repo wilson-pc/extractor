@@ -75,6 +75,6 @@ export async function donghualife(link: string) {
       return { data: { videos: videos }, title: title };
     }
   } catch (error) {
-    console.log(error);
+    return null;
   }
 }
