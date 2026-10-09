@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import { chapter } from "../db/schema";
 
 export async function donghualife(link: string) {
+  console.log(link);
   let title = "";
   try {
     const before = await db.query.chapter.findFirst({
@@ -23,10 +24,14 @@ export async function donghualife(link: string) {
       };
     } else {
       const { data } = await axios.get(link);
+      const dee = data.split(`\\"sources\\":`)[1].split(`],`)[0] + `]`;
+
+      const json = JSON.parse(dee.replace(/\\"/g, '"'));
 
       const $$ = cheerio.load(data);
+      const decd = data.split(`\\"title\\":\\"`)[1].split(`\\"`)[0];
 
-      title = $$("title").first().text().replace(/\\n/g, "").trim();
+      title = decd.trim();
       const html2 = $$(".embed-links li a");
       const videos: { link: string; label: string }[] = [];
       html2.each((i, elem) => {
@@ -38,9 +43,27 @@ export async function donghualife(link: string) {
         }
       });
 
+      for (const element of json) {
+        const rs = await axios.post(
+          "https://donghualife.com/api/player/source",
+          {
+            token: element.token,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Referer: "link",
+            },
+          },
+        );
+        const url = rs.data?.url;
+        videos.push({ link: url, label: element.label });
+      }
+
       if (videos.length === 0) {
         return null;
       }
+
       await db.insert(chapter).values({
         title: title,
         videos: videos,

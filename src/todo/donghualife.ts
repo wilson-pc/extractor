@@ -9,37 +9,48 @@ import { Link } from "../types";
 import { animexin } from "../sites/animexin";
 import { donghualife } from "../sites/donghualife";
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function donghualifeTodo(
   link: string,
   links: boolean,
-  salt: number
+  salt: number,
 ) {
   let title = "";
   const capitulos: Link[] = [];
   let full: any[] = [];
-  const loops = [
-    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-  ];
-  const link2 = link.split("?page")[0];
-  for (const page of loops) {
-    const { data } = await axios.get(`${link2}?page=${page}`);
-    const $ = cheerio.load(data);
+  const { data } = await axios.get(link);
+  const ss = data.split(`\\"seasons\\":`)[1].split(`],`)[0] + `]`;
 
-    const html = $(".view-content tbody a");
-    title = $(".titulo h2 a").first().text().replace(/\\n/g, "").trim();
+  const json = JSON.parse(ss.replace(/\\"/g, '"'));
 
-    html.each((i, elem) => {
-      //  console.log(elem.children[0])
-      const urld = elem.attribs.href;
-      const tittle = elem.children[0].data;
-      capitulos.push({ url: "https://donghualife.com" + urld, title: tittle });
-    });
-    if (html.length === 0) {
-      break;
+  const slug = data.split(`seriesSlug\\":\\"`)[1].split(`\\"`)[0];
+
+  for (const element of json) {
+    const rp = await axios.get(
+      `https://donghualife.com/api/series/${slug}/seasons/${element.slug}/episodes`,
+
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Referer: "link",
+        },
+      },
+    );
+
+    const episodios = rp.data.episodes;
+    for (const episodio of episodios) {
+      capitulos.push({
+        url: `https://donghualife.com/watch/${element.slug}-${episodio.number}`,
+        title: `${element.label} - ${episodio.title}`,
+      });
     }
   }
+
   if (!links) {
-    for (const iterator of capitulos.reverse().slice(salt)) {
+    for (const iterator of capitulos.slice(salt)) {
       try {
         let videos = [];
         const before = await db.query.chapter.findFirst({
@@ -58,6 +69,7 @@ export async function donghualifeTodo(
 
           if (capt) {
             full.push({ ...iterator, videos: capt.data.videos });
+            await sleep(1000);
           }
         }
       } catch (error) {
