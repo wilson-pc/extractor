@@ -22,16 +22,21 @@ export async function donghualifeTodo(
   const capitulos: Link[] = [];
   let full: any[] = [];
   const { data } = await axios.get(link);
+  console.log("donghualifeTodo", data);
   const ss = data.split(`\\"seasons\\":`)[1].split(`],`)[0] + `]`;
 
   const json = JSON.parse(ss.replace(/\\"/g, '"'));
 
   const slug = data.split(`seriesSlug\\":\\"`)[1].split(`\\"`)[0];
-  const cdfdfe = data
-    .split(`TVSeries\\\",\\\"name\\\":\\\"`)[1]
-    .split(`\\\"`)[0];
-  title = cdfdfe.trim();
-
+  try {
+    const cdfdfe = data
+      .split(`TVSeries\\\",\\\"name\\\":\\\"`)[1]
+      .split(`\\\"`)[0];
+    title = cdfdfe.trim();
+  } catch (e) {
+    const $ = cheerio.load(data);
+    title = $("h1").first().text().trim();
+  }
   for (const element of json) {
     const rp = await axios.get(
       `https://donghualife.com/api/series/${slug}/seasons/${element.slug}/episodes`,
